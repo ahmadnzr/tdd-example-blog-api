@@ -1,0 +1,448 @@
+openapi: 3.0.0
+info:
+  version: 2.0.0
+  title: Blog API
+  description: |
+    This API is being used to manage the blog of **Insert Company Here**. By using this API, you can create an entry for blog, edit you blog post,
+    find you blogpost, or even delete it. To start using this API, you must create an account for **Insert Company Here**.
+servers:
+  - url: http://localhost:8080/
+    description: "Mock Server"
+tags:
+  - name: Authentication
+    description: contains operation to register, and login
+  - name: Post
+    description: contains operation to create, read, update, and delete post
+  - name: Misc
+    description: contains miscellaneous operation
+security:
+  - BearerToken: []
+paths:
+  /:
+    get:
+      summary: "Root"
+      description: |
+        # Root
+
+        Use this endpoint to check the health or ping this API.
+        It will return basic JSON object.
+      operationId: getRoot
+      security: []
+      tags:
+        - Misc
+      responses:
+        "200":
+          $ref: "#/components/responses/OKResponse"
+  /v1/login:
+    post:
+      summary: "Retrieve token"
+      description: |
+        # Retrieve access token
+
+        Use this endpoint to retrieve the access token
+        with the correct credential. If you haven't got
+        any account yet, please register via Register endpoint.
+      operationId: doLogin
+      security: []
+      tags:
+        - Authentication
+      requestBody:
+        $ref: "#/components/requestBodies/CredentialRequest"
+      responses:
+        "201":
+          $ref: "#/components/responses/TokenOKResponse"
+        "401":
+          $ref: "#/components/responses/CredentialErrorResponse"
+  /v1/register:
+    post:
+      summary: "Create new account"
+      description: |
+        # Create new account
+
+        Use this endpoint to create new account for this site.
+        If the email already exist it will return `422`.
+      operationId: doRegister
+      security: []
+      requestBody:
+        $ref: "#/components/requestBodies/RegistrationRequest"
+      tags:
+        - Authentication
+      responses:
+        "201":
+          $ref: "#/components/responses/TokenOKResponse"
+        "422":
+          $ref: "#/components/responses/EmailAlreadyExistErrorResponse"
+  /v1/posts:
+    get:
+      summary: "Get Posts"
+      description: |
+        # Get Posts
+
+        Use this endpoint to retrieve all posts
+        that are available on the database. No pagination required.
+
+        When you send `status` in the query parameter and the value
+        is `DRAFT`, it will only send you an error when the `author_id`
+        is not you.
+      operationId: getPosts
+      security: []
+      parameters:
+        - in: query
+          name: author_id
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - DRAFT
+              - PUBLISHED
+      tags:
+        - Post
+      responses:
+        "200":
+          $ref: "#/components/responses/PostsOKResponse"
+        "403":
+          $ref: "#/components/responses/PostForbiddenErrorResponse"
+    post:
+      summary: "Create Post"
+      description: |
+        # Create Post
+
+        You can create a post to our website, by hitting this endpoint.
+        By default, your post won't be shown to the public yet, the status
+        of that post will be draft by default.
+
+        You can publish your post on another endpoint.
+      requestBody:
+        $ref: "#/components/requestBodies/CreatePostRequest"
+      operationId: createPost
+      tags:
+        - Post
+      responses:
+        "201":
+          $ref: "#/components/responses/PostOKResponse"
+  /v1/posts/:id:
+    get:
+      summary: "Get Post"
+      description: |
+        # Get Post
+
+        You can get a specific post by giving this endpoint
+        the ID of the post in the path.
+
+        When the post is not found, it will return `404`.
+      operationId: getPost
+      security: []
+      tags:
+        - Post
+      responses:
+        "200":
+          $ref: "#/components/responses/PostOKResponse"
+    put:
+      summary: "Update Post"
+      description: |
+        # Update Post
+
+        You can update your post if you feel like
+        there's something need to be updated.
+      operationId: updatePost
+      requestBody:
+        $ref: "#/components/requestBodies/UpdatePostRequest"
+      tags:
+        - Post
+      responses:
+        "200":
+          $ref: "#/components/responses/PostOKResponse"
+        "403":
+          $ref: "#/components/responses/PostForbiddenErrorResponse"
+    delete:
+      summary: "Delete Post"
+      description: |
+        # Delete Post
+
+        You can remove your post, but why?
+      operationId: deletePost
+      tags:
+        - Post
+      responses:
+        "204":
+          $ref: "#/components/responses/OKResponse"
+        "403":
+          $ref: "#/components/responses/PostForbiddenErrorResponse"
+  /v1/posts/:id/publishment:
+    put:
+      summary: "Publish Post"
+      description: |
+        # Publish Post
+
+        Now you can decide to show the post to the public or not
+        by setting the publishment state.
+      operationId: publishPost
+      requestBody:
+        $ref: "#/components/requestBodies/PublishPostRequest"
+      tags:
+        - Post
+      responses:
+        "200":
+          $ref: "#/components/responses/PostOKResponse"
+        "403":
+          $ref: "#/components/responses/PostForbiddenErrorResponse"
+components:
+  schemas:
+    PostEntity:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        title:
+          type: string
+          example: "Industrial Society and Its Future"
+        body:
+          type: string
+          example: "<p>Industrial society and its future</p>"
+        status:
+          type: string
+          enum:
+            - DRAFT
+            - PUBLISHED
+        author:
+          $ref: "#/components/schemas/UserEntity"
+        created_at:
+          type: string
+          example: 30-07-2021 12:00 +07:00
+        published_at:
+          type: string
+          example: 30-07-2021 12:00 +07:00
+        updated_at:
+          type: string
+          example: 30-07-2021 12:00 +07:00
+    UserEntity:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        name:
+          type: string
+          example: "Ahmad Nizar"
+        email:
+          type: string
+          example: "ahmad@nizar.co.id"
+        created_at:
+          type: string
+          example: 30-07-2021 12:00 +07:00
+        updated_at:
+          type: string
+          example: 30-07-2021 12:00 +07:00
+    TokenEntity:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        refreshToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        expiresAt:
+          type: number
+          description: Time since epoch
+          example: 121323600
+  requestBodies:
+    CredentialRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+                example: "ahmad@nizar.co.id"
+              password:
+                type: string
+                example: "123456"
+    CreatePostRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - title
+              - body
+            properties:
+              title:
+                type: string
+                example: "Industrial Society and Its Future"
+              body:
+                type: string
+                example: "<p>Something that is very long</p>"
+    UpdatePostRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+                example: "Industrial Society and Its Future"
+              body:
+                type: string
+                example: "<p>Something that is very long</p>"
+    PublishPostRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum:
+                  - DRAFT
+                  - PUBLISHED
+    RegistrationRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - email
+              - name
+              - password
+            properties:
+              name:
+                type: string
+                example: "Ahmad Nizar"
+              email:
+                type: string
+                example: "ahmad@nizar.co.id"
+              password:
+                type: string
+                example: "123456"
+  responses:
+    OKResponse:
+      description: Root response body schema
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: OK
+              data:
+                type: string
+                nullable: true
+                example: null
+    CredentialErrorResponse:
+      description: Bad credential response body schema
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: OK
+              data:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "UNAUTHORIZED"
+                  message:
+                    type: string
+                    enum:
+                      - Wrong password!
+                      - Email does not exist!
+    EmailAlreadyExistErrorResponse:
+      description: Failed to register response body schema
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: OK
+              data:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: FAILED_TO_REGISTER
+                  message:
+                    type: string
+                    example: "Email already exists!"
+    TokenOKResponse:
+      description: Login and register body schema
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: OK
+              data:
+                $ref: "#/components/schemas/TokenEntity"
+    PostOKResponse:
+      description: Create, update, and get post body schema
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: OK
+              data:
+                $ref: "#/components/schemas/PostEntity"
+    PostForbiddenErrorResponse:
+      description: When you try to access, modify, or delete someone else's resources
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: FAIL
+              data:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: FORBIDDEN
+                  message:
+                    type: string
+                    example: You're not allowed to retrieve, or modify this resource!
+    PostsOKResponse:
+      description: Get posts body schema
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: OK
+              data:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PostEntity"
+  securitySchemes:
+    BearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Retrieve it via Authentication tagged endpoint."

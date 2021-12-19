@@ -1,0 +1,24 @@
+{
+  "development": {
+    "username": "ahmad",
+    "password": null,
+    "database": "blog_api_development",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "ahmad",
+    "password": null,
+    "database": "blog_api_test",
+    "host": "127.0.0.1",
+    "logging": false,
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "ahmad",
+    "password": null,
+    "database": "blog_api_production",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  }
+}
